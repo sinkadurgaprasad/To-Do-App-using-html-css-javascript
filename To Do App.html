@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Tic Tac Toe</title>
+</head>
+<style>
+    body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(45deg, #2196F3, #FFEB3B);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: #fff;
+}
+.container {
+    text-align: center;
+    color:black;
+}
+#registration {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-gap: 5px;
+    margin-top: 20px;
+}
+
+.cell {
+    width: 100px;
+    height: 100px;
+    font-size: 2em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 1px solid #fff;
+}
+
+.cell:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#message {
+    margin-top: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.result-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1;
+    display: none;
+}
+
+.result-screen h2 {
+    color: #fff;
+}
+
+.new-game-btn {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+</style>
+<body>
+    <div class="container">
+        <h1>Tic Tac Toe</h1>
+        <div id="registration">
+            <label for="player1">Player 1 Name:</label>
+            <input type="text" id="player1" placeholder="Enter name" required>
+            <br>
+            <label for="player2">Player 2 Name:</label>
+            <input type="text" id="player2" placeholder="Enter name" required>
+            <br>
+            <button id="start-game">Start Game</button>
+        </div>
+        <div id="game" style="display: none;">
+            <div id="message"></div>
+            <div id="board" class="board"></div>
+        </div>
+    </div>
+    <div id="result-screen" class="result-screen">
+        <h2 id="result-message"></h2>
+        <button id="new-game-btn" class="new-game-btn">New Game</button>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    const registrationSection = document.getElementById('registration');
+    const startGameBtn = document.getElementById('start-game');
+    const gameSection = document.getElementById('game');
+    const board = document.getElementById('board');
+    const message = document.getElementById('message');
+    const resultScreen = document.getElementById('result-screen');
+    const resultMessage = document.getElementById('result-message');
+    const newGameBtn = document.getElementById('new-game-btn');
+
+    let currentPlayer;
+    let player1Name;
+    let player2Name;
+    let boardState;
+    let gameActive;
+
+    startGameBtn.addEventListener('click', () => {
+        player1Name = document.getElementById('player1').value;
+        player2Name = document.getElementById('player2').value;
+
+        if (!player1Name || !player2Name) {
+            alert('Please enter names for both players.');
+            return;
+        }
+
+        currentPlayer = 'X';
+        boardState = ['', '', '', '', '', '', '', '', ''];
+        gameActive = true;
+
+        registrationSection.style.display = 'none';
+        gameSection.style.display = 'block';
+
+        renderBoard();
+        message.textContent = `${player1Name}'s turn`;
+    });
+
+    function checkWinner() {
+        const winPatterns = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        for (const pattern of winPatterns) {
+            const [a, b, c] = pattern;
+            if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+                gameActive = false;
+                showResult(`${currentPlayer === 'X' ? player1Name : player2Name} wins!`);
+                return;
+            }
+        }
+
+        if (!boardState.includes('')) {
+            gameActive = false;
+            showResult("It's a tie!");
+        }
+    }
+
+    function handleClick(index) {
+        if (boardState[index] || !gameActive) {
+            return;
+        }
+
+        boardState[index] = currentPlayer;
+        renderBoard();
+        checkWinner();
+
+        if (gameActive) {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            message.textContent = `${currentPlayer === 'X' ? player1Name : player2Name}'s turn`;
+        }
+    }
+
+    function renderBoard() {
+        board.innerHTML = '';
+        boardState.forEach((value, index) => {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.textContent = value;
+            cell.addEventListener('click', () => handleClick(index));
+            board.appendChild(cell);
+        });
+    }
+
+    function showResult(result) {
+        resultMessage.textContent = result;
+        resultScreen.style.display = 'flex';
+    }
+
+    function resetGame() {
+        registrationSection.style.display = 'block';
+        gameSection.style.display = 'none';
+        resultScreen.style.display = 'none';
+        currentPlayer = null;
+        player1Name = null;
+        player2Name = null;
+        boardState = null;
+        gameActive = null;
+    }
+
+    newGameBtn.addEventListener('click', resetGame);
+});
+
+    </script>
+</body>
+</html>
